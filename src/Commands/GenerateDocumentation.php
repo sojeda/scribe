@@ -28,7 +28,7 @@ class GenerateDocumentation extends Command
                             {--scribe-dir= : Specify the directory where Scribe stores its intermediate output and cache. Defaults to `.<config_file>`}
     ";
 
-    protected $description = 'Generate API documentation from your Laravel/Dingo routes.';
+    protected $description = 'Generate API documentation from your Laravel routes.';
 
     protected DocumentationConfig $docConfig;
 

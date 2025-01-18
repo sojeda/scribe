@@ -3,9 +3,7 @@ parameters:
     reportUnmatchedIgnoredErrors: true
     inferPrivatePropertyTypeFromConstructor: true
     ignoreErrors:
-        - '#Call to an undefined method Illuminate\\Routing\\Route::versions\(\).#'
         - '#Call to an undefined method ReflectionType::getName\(\).#'
-        - '#.+Dingo.+#'
         - '#Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem::path\(\)#'
         - '#Call to an undefined method Illuminate\\Contracts\\Foundation\\Application::forgetInstance\(\)#'
         - '#Access to an undefined property Illuminate\\Support\\HigherOrderCollectionProxy#'

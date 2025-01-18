@@ -80,29 +80,6 @@ class BehavioursTest extends BaseLaravelTest
         $this->generateAndExpectConsoleOutput('Processed route: [GET] api/closure');
     }
 
-    /**
-     * @group dingo
-     * @test
-     */
-    public function can_process_routes_on_dingo()
-    {
-        $api = app(\Dingo\Api\Routing\Router::class);
-        $api->version('v1', function ($api) {
-            $api->get('/closure', function () {
-                return 'foo';
-            });
-            $api->get('/test', [TestController::class, 'withEndpointDescription']);
-        });
-
-        $this->setConfig(['routes.0.match.prefixes' => ['*']]);
-        $this->setConfig(['routes.0.match.versions' => ['v1']]);
-
-        $this->generateAndExpectConsoleOutput(
-            'Processed route: [GET] closure',
-            'Processed route: [GET] test'
-        );
-    }
-
     /** @test */
     public function calls_afterGenerating_hook()
     {

@@ -2,7 +2,6 @@
 
 namespace Knuckles\Scribe\Tests\Strategies\Responses;
 
-use Dingo\Api\Routing\Router;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Knuckles\Camel\Extraction\ExtractedEndpointData;
@@ -189,105 +188,6 @@ class ResponseCallsTest extends BaseLaravelTest
         Scribe::beforeResponseCall(fn() => null);
     }
 
-    /**
-     * @test
-     * @group dingo
-     */
-    public function can_call_route_and_fetch_response_with_dingo()
-    {
-        $route = $this->registerDingoRoute('post', '/shouldFetchRouteResponse', 'shouldFetchRouteResponse');
-
-        $rules = [
-            'response_calls' => [
-                'methods' => ['*'],
-            ],
-        ];
-
-        $strategy = new ResponseCalls(new DocumentationConfig());
-        $results = $strategy(ExtractedEndpointData::fromRoute($route), $this->convertRules($rules));
-
-        $this->assertEquals(200, $results[0]['status']);
-        $this->assertArraySubset([
-            'id' => 4,
-            'name' => 'banana',
-            'color' => 'red',
-            'weight' => '1 kg',
-            'delicious' => true,
-        ], json_decode($results[0]['content'], true));
-    }
-
-    /**
-     * @test
-     * @group dingo
-     */
-    public function uses_configured_settings_when_calling_route_with_dingo()
-    {
-        $route = $this->registerDingoRoute('post', '/echo/{id}', 'echoesRequestValues');
-
-        $rules = [
-            'response_calls' => [
-                'methods' => ['*'],
-                'queryParams' => [
-                    'queryParam' => 'queryValue',
-                ],
-                'bodyParams' => [
-                    'bodyParam' => 'bodyValue',
-                ],
-            ],
-        ];
-
-        $endpointData = ExtractedEndpointData::fromRoute($route, [
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-                'header' => 'headerValue',
-            ],
-        ]);
-        $strategy = new ResponseCalls(new DocumentationConfig());
-        $results = $strategy($endpointData, $this->convertRules($rules));
-
-        $this->assertEquals(200, $results[0]['status']);
-
-        $responseContent = json_decode($results[0]['content'], true);
-        $this->assertEquals('queryValue', $responseContent['queryParam']);
-        $this->assertEquals('bodyValue', $responseContent['bodyParam']);
-        $this->assertEquals('headerValue', $responseContent['header']);
-    }
-
-    /**
-     * @test
-     * @group dingo
-     */
-    public function can_override_application_config_during_response_call_with_dingo()
-    {
-        $route = $this->registerDingoRoute('post', '/echoesConfig', 'echoesConfig');
-
-        $rules = [
-            'response_calls' => [
-                'methods' => ['*'],
-            ],
-        ];
-
-        $strategy = new ResponseCalls(new DocumentationConfig());
-        $results = $strategy(ExtractedEndpointData::fromRoute($route), $this->convertRules($rules));
-        $originalValue = json_decode($results[0]['content'], true)['app.env'];
-
-        $now = time();
-        $rules = [
-            'response_calls' => [
-                'methods' => ['*'],
-                'config' => [
-                    'app.env' => $now,
-                ],
-            ],
-        ];
-
-        $results = $strategy(ExtractedEndpointData::fromRoute($route), $this->convertRules($rules));
-        $newValue = json_decode($results[0]['content'], true)['app.env'];
-        $this->assertEquals($now, $newValue);
-        $this->assertNotEquals($originalValue, $newValue);
-    }
-
     /** @test */
     public function does_not_make_response_call_if_success_response_already_gotten()
     {
@@ -311,25 +211,6 @@ class ResponseCallsTest extends BaseLaravelTest
         $results = $strategy($endpointData, $this->convertRules($rules));
 
         $this->assertNull($results);
-    }
-
-    public function registerDingoRoute(string $httpMethod, string $path, string $controllerMethod)
-    {
-        $desiredRoute = null;
-        /** @var Router $api */
-        $api = app(Router::class);
-        $api->version('v1', function (Router $api) use ($controllerMethod, $path, $httpMethod, &$desiredRoute) {
-            $desiredRoute = $api->$httpMethod($path, [TestController::class, $controllerMethod]);
-        });
-        $routes = app(\Dingo\Api\Routing\Router::class)->getRoutes('v1');
-
-        /*
-         * Doing this bc we want an instance of Dingo\Api\Routing\Route, not Illuminate\Routing\Route, which the method above returns
-         */
-        return collect($routes)
-            ->first(function (Route $route) use ($desiredRoute) {
-                return $route->uri() === $desiredRoute->uri();
-            });
     }
 
     protected function convertRules(array $rules): mixed

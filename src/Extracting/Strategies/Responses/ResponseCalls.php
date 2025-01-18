@@ -2,8 +2,6 @@
 
 namespace Knuckles\Scribe\Extracting\Strategies\Responses;
 
-use Dingo\Api\Dispatcher;
-use Dingo\Api\Routing\Route as DingoRoute;
 use Exception;
 use Illuminate\Contracts\Http\Kernel;
 use Illuminate\Http\Request;
@@ -205,47 +203,6 @@ class ResponseCalls extends Strategy
         $this->rollbackLaravelConfigChanges();
     }
 
-    /**
-     * @param Request $request
-     *
-     * @return \Illuminate\Http\JsonResponse|mixed
-     */
-    public function callDingoRoute(Request $request, Route $route)
-    {
-        /** @var \Dingo\Api\Dispatcher $dispatcher */
-        $dispatcher = app(\Dingo\Api\Dispatcher::class);
-
-        /** @var DingoRoute $route */
-        $dispatcher->version($route->versions()[0]);
-        foreach ($request->headers as $header => $value) {
-            $dispatcher->header($header, $value);
-        }
-
-        // set domain and body parameters
-        $dispatcher->on($request->header('SERVER_NAME'))
-            ->with($request->request->all());
-
-        // set URL and query parameters
-        $uri = $request->getRequestUri();
-        $query = $request->getQueryString();
-        if (!empty($query)) {
-            $uri .= "?$query";
-        }
-
-        $response = call_user_func_array(
-            [$dispatcher, strtolower($request->method())],
-            [$uri]
-        );
-
-        // the response from the Dingo dispatcher is the 'raw' response from the controller,
-        // so we have to ensure it's JSON first
-        if (!$response instanceof Response) {
-            $response = response()->json($response);
-        }
-
-        return $response;
-    }
-
     public function getMethods(Route $route): array
     {
         return array_diff($route->methods(), ['HEAD']);
@@ -287,18 +244,12 @@ class ResponseCalls extends Strategy
      *
      * @param Route $route
      *
-     * @return \Illuminate\Http\JsonResponse|mixed|\Symfony\Component\HttpFoundation\Response
+     * @return \Symfony\Component\HttpFoundation\Response
      * @throws Exception
      */
     protected function makeApiCall(Request $request, Route $route)
     {
-        if ($this->config->get('router') == 'dingo') {
-            $response = $this->callDingoRoute($request, $route);
-        } else {
-            $response = $this->callLaravelOrLumenRoute($request);
-        }
-
-        return $response;
+        return $this->callLaravelOrLumenRoute($request);
     }
 
     protected function callLaravelOrLumenRoute(Request $request): \Symfony\Component\HttpFoundation\Response

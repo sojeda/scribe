@@ -2,7 +2,6 @@
 
 namespace Knuckles\Scribe\Matching;
 
-use Dingo\Api\Routing\RouteCollection;
 use Illuminate\Routing\Route;
 use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Support\Str;
@@ -10,16 +9,14 @@ use Knuckles\Scribe\Tools\RoutePatternMatcher;
 
 class RouteMatcher implements RouteMatcherInterface
 {
-    public function getRoutes(array $routeRules = [], string $router = 'laravel'): array
+    public function getRoutes(array $routeRules = []): array
     {
-        $usingDingoRouter = strtolower($router) == 'dingo';
-
-        return $this->getRoutesToBeDocumented($routeRules, $usingDingoRouter);
+        return $this->getRoutesToBeDocumented($routeRules);
     }
 
-    private function getRoutesToBeDocumented(array $routeRules, bool $usingDingoRouter = false): array
+    private function getRoutesToBeDocumented(array $routeRules): array
     {
-        $allRoutes = $this->getAllRoutes($usingDingoRouter);
+        $allRoutes = $this->getAllRoutes();
 
         $matchedRoutes = [];
 
@@ -35,7 +32,7 @@ class RouteMatcher implements RouteMatcherInterface
                     continue;
                 }
 
-                if ($this->shouldIncludeRoute($route, $routeRule, $includes, $usingDingoRouter)) {
+                if ($this->shouldIncludeRoute($route, $routeRule, $includes)) {
                     $matchedRoutes[] = new MatchedRoute($route, $routeRule['apply'] ?? []);
                 }
             }
@@ -44,38 +41,21 @@ class RouteMatcher implements RouteMatcherInterface
         return $matchedRoutes;
     }
 
-    private function getAllRoutes(bool $usingDingoRouter)
+    private function getAllRoutes()
     {
-        if (! $usingDingoRouter) {
-            return RouteFacade::getRoutes();
-        }
-
-        /** @var \Dingo\Api\Routing\Router $router */
-        $router = app(\Dingo\Api\Routing\Router::class);
-        $allRouteCollections = $router->getRoutes();
-
-        return collect($allRouteCollections)
-            ->flatMap(function (RouteCollection $collection) {
-                return $collection->getRoutes();
-            })->toArray();
+        return RouteFacade::getRoutes();
     }
 
-    private function shouldIncludeRoute(Route $route, array $routeRule, array $mustIncludes, bool $usingDingoRouter): bool
+    private function shouldIncludeRoute(Route $route, array $routeRule, array $mustIncludes): bool
     {
         if (RoutePatternMatcher::matches($route, $mustIncludes)) {
             return true;
         }
 
-        $matchesVersion = true;
-        if ($usingDingoRouter) {
-            $matchesVersion = !empty(array_intersect($route->versions(), $routeRule['match']['versions'] ?? []));
-        }
-
         $domainsToMatch = $routeRule['match']['domains'] ?? [];
         $pathsToMatch = $routeRule['match']['prefixes'] ?? [];
 
-        return Str::is($domainsToMatch, $route->getDomain()) && Str::is($pathsToMatch, $route->uri())
-            && $matchesVersion;
+        return Str::is($domainsToMatch, $route->getDomain()) && Str::is($pathsToMatch, $route->uri());
     }
 
     private function shouldExcludeRoute(Route $route, array $routeRule): bool

@@ -51,7 +51,6 @@ class Serializer
                 'match' => [
                     'prefixes' => $routesConfig->prefixes,
                     'domains' => $routesConfig->domains,
-                    'versions' => $routesConfig->dingoVersions,
                 ],
                 'include' => $routesConfig->alwaysInclude,
                 'exclude' => $routesConfig->alwaysExclude,
