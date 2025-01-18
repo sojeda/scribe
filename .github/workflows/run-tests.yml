@@ -40,7 +40,7 @@ jobs:
         run: COMPOSER=composer.lowest.json composer update --prefer-stable
 
 
-      - name: Execute tests (Laravel/Lumen)
+      - name: Execute tests (Laravel)
         run: composer test-ci
         if: ${{ matrix.deps == 'highest' }}
 

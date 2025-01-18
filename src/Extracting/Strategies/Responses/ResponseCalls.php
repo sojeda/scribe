@@ -249,26 +249,15 @@ class ResponseCalls extends Strategy
      */
     protected function makeApiCall(Request $request, Route $route)
     {
-        return $this->callLaravelOrLumenRoute($request);
+        return $this->callLaravelRoute($request);
     }
 
-    protected function callLaravelOrLumenRoute(Request $request): \Symfony\Component\HttpFoundation\Response
+    protected function callLaravelRoute(Request $request): \Symfony\Component\HttpFoundation\Response
     {
-        // Confirm we're running in Laravel, not Lumen
-        if (app()->bound(Kernel::class)) {
-            /** @var \Illuminate\Foundation\Http\Kernel $kernel */
-            $kernel = app(Kernel::class);
-            $response = $kernel->handle($request);
-            $kernel->terminate($request, $response);
-        } else {
-            // Handle the request using the Lumen application.
-            /** @var \Laravel\Lumen\Application $app */
-            $app = app();
-            $app->bind('request', function () use ($request) {
-                return $request;
-            });
-            $response = $app->handle($request);
-        }
+        /** @var \Illuminate\Foundation\Http\Kernel $kernel */
+        $kernel = app(Kernel::class);
+        $response = $kernel->handle($request);
+        $kernel->terminate($request, $response);
 
         return $response;
     }

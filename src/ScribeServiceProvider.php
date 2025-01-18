@@ -48,7 +48,7 @@ class ScribeServiceProvider extends ServiceProvider
             Str::endsWith(config('scribe.type', 'static'), 'laravel') &&
             config('scribe.laravel.add_routes', false)
         ) {
-            $routesPath = Utils::isLumen() ? __DIR__ . '/../routes/lumen.php' : __DIR__ . '/../routes/laravel.php';
+            $routesPath = __DIR__ . '/../routes/laravel.php';
             $this->loadRoutesFrom($routesPath);
         }
     }

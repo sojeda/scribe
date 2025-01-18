@@ -18,7 +18,6 @@ class Defaults
     {
         return new StrategyListWrapper([
             Strategies\UrlParameters\GetFromLaravelAPI::class,
-            Strategies\UrlParameters\GetFromLumenAPI::class,
             Strategies\UrlParameters\GetFromUrlParamAttribute::class,
             Strategies\UrlParameters\GetFromUrlParamTag::class,
         ]);

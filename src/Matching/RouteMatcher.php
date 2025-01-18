@@ -24,10 +24,6 @@ class RouteMatcher implements RouteMatcherInterface
             $includes = $routeRule['include'] ?? [];
 
             foreach ($allRoutes as $route) {
-                if (is_array($route)) {
-                    $route = new LumenRouteAdapter($route);
-                }
-
                 if ($this->shouldExcludeRoute($route, $routeRule)) {
                     continue;
                 }
