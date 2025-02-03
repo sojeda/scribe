@@ -12,9 +12,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ### Removed
 
+# 4.40.0 (3 February 2024)
+## Added
+- Correctly list required fields for nested objects in OpenAPI spec (request bodies) [99b71ebf0](https://github.com/knuckleswtf/scribe/commit/99b71ebf058e679c3020779583be4de6b576ba3b)
+- Add support for defining Groups and Subgroups as enums [#932](https://github.com/knuckleswtf/scribe/pull/932)
+
 # 4.39.0 (31 December 2024)
 ## Added
-- Correctly list required fields for nested objects in OpenAPI spec [#905](https://github.com/knuckleswtf/scribe/pull/905)
+- Correctly list required fields for nested objects in OpenAPI spec (responses) [#905](https://github.com/knuckleswtf/scribe/pull/905)
 - Cursor pagination support in API responses (`cursorPaginate`/`paginate=cursor`) [#917](https://github.com/knuckleswtf/scribe/pull/917)
 
 ## Fixed

@@ -543,7 +543,7 @@ class OpenAPISpecWriter
 
             return $fieldData;
         } else if ($field->type === 'object') {
-            return [
+            $data = [
                 'type' => 'object',
                 'description' => $field->description ?: '',
                 'example' => $field->example,
@@ -553,6 +553,11 @@ class OpenAPISpecWriter
                 })->all()),
                 'required' => collect($field->__fields)->filter(fn ($f) => $f['required'])->keys()->toArray(),
             ];
+            // The spec doesn't allow for an empty `required` array. Must have something there.
+            if (empty($data['required'])) {
+                unset($data['required']);
+            }
+            return $data;
         } else {
             $schema = [
                 'type' => static::normalizeTypeName($field->type),
