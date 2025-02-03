@@ -861,17 +861,39 @@ class OpenAPISpecWriterTest extends BaseUnitTest
     public function adds_enum_values_to_response_properties()
     {
         $endpointData = $this->createMockEndpointData([
-            'uri' => '/path',
-            'httpMethods' => ['POST'],
+            'httpMethods' => ['GEt'],
+            'uri' => '/path1',
             'responses' => [
                 [
                     'status' => 200,
-                    'description' => 'This one',
-                    'content' => '{"status": "one"}',
+                    'description' => 'List of entities',
+                    'content' => '{"data":[{"name":"Resource name","uuid":"UUID","primary":true}]}',
                 ],
             ],
             'responseFields' => [
-                'status' => ['enumValues' => ['one', 'two', 'three']],
+                'data' => [
+                    'name' => 'data',
+                    'type' => 'array',
+                    'description' => 'Data wrapper',
+                ],
+                'data.name' => [
+                    'name' => 'Resource name',
+                    'type' => 'string',
+                    'description' => 'Name of the resource object',
+                    'required' => true,
+                ],
+                'data.uuid' => [
+                    'name' => 'Resource UUID',
+                    'type' => 'string',
+                    'description' => 'Unique ID for the resource',
+                    'required' => true,
+                ],
+                'data.primary' => [
+                    'name' => 'Is primary',
+                    'type' => 'bool',
+                    'description' => 'Is primary resource',
+                    'required' => true,
+                ],
             ],
         ]);
 
@@ -881,19 +903,100 @@ class OpenAPISpecWriterTest extends BaseUnitTest
 
         $this->assertArraySubset([
             '200' => [
+                'description' => 'List of entities',
                 'content' => [
                     'application/json' => [
                         'schema' => [
+                            'type' => 'object',
                             'properties' => [
-                                'status' => [
-                                    'enum' => ['one', 'two', 'three'],
+                                'data' => [
+                                    'type' => 'array',
+                                    'description' => 'Data wrapper',
+                                    'items' => [
+                                        'type' => 'object',
+                                        'properties' => [
+                                            'name' => [
+                                                'type' => 'string',
+                                                'description' => 'Name of the resource object',
+                                            ],
+                                            'uuid' => [
+                                                'type' => 'string',
+                                                'description' => 'Unique ID for the resource',
+                                            ],
+                                            'primary' => [
+                                                'type' => 'boolean',
+                                                'description' => 'Is primary resource',
+                                            ],
+                                        ],
+                                    ],
+                                    'required' => [
+                                        'name',
+                                        'uuid',
+                                        'primary',
+                                    ]
                                 ],
                             ],
                         ],
                     ],
                 ],
             ],
-        ], $results['paths']['/path']['post']['responses']);
+        ], $results['paths']['/path1']['get']['responses']);
+    }
+
+    /** @test */
+    public function lists_required_properties_in_request_body()
+    {
+        $endpointData = $this->createMockEndpointData([
+            'uri' => '/path',
+            'httpMethods' => ['POST'],
+            'bodyParameters' => [
+                'my_field' => [
+                    'name' => 'my_field',
+                    'description' => '',
+                    'required' => true,
+                    'example' => 'abc',
+                    'type' => 'string',
+                    'nullable' => false,
+                ],
+                'other_field.nested_field' => [
+                    'name' => 'nested_field',
+                    'description' => '',
+                    'required' => true,
+                    'example' => 'abc',
+                    'type' => 'string',
+                    'nullable' => false,
+                ],
+            ],
+        ]);
+        $groups = [$this->createGroup([$endpointData])];
+        $results = $this->generate($groups);
+
+        $this->assertArraySubset([
+            'requestBody' => [
+                'content' => [
+                    'application/json' => [
+                        'schema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'my_field' => [
+                                    'type' => 'string',
+                                ],
+                                'other_field' => [
+                                    'type' => 'object',
+                                    'properties' => [
+                                        'nested_field' => [
+                                            'type' => 'string',
+                                        ],
+                                    ],
+                                    'required' => ['nested_field'],
+                                ],
+                            ],
+                            'required' => ['my_field']
+                        ],
+                    ],
+                ],
+            ],
+        ], $results['paths']['/path']['post']);
     }
 
     protected function createMockEndpointData(array $custom = []): OutputEndpointData
