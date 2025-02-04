@@ -7,11 +7,10 @@ use Knuckles\Scribe\Tools\ConsoleOutputUtils as c;
 
 class DocumentationConfig
 {
-    private $data;
+    public array $data;
 
     public function __construct(array $config = [])
     {
-        $config['router'] = 'laravel';
         $this->data = $config;
     }
 

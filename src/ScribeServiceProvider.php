@@ -93,13 +93,7 @@ class ScribeServiceProvider extends ServiceProvider
             __DIR__ . '/../config/scribe.php' => $this->app->configPath('scribe.php'),
         ], 'scribe-config');
 
-        $this->mergeConfigFrom(__DIR__ . '/../config/scribe.php', 'scribe');
-        // This is really only used in internal testing,
-        // but we also make it publishable for easy migration, so there's no .
-        $this->publishes([
-            __DIR__ . '/../config/scribe.php' => $this->app->configPath('scribe.php'),
-        ], 'scribe-config');
-        $this->mergeConfigFrom(__DIR__ . '/../config/scribe_new.php', 'scribe_new');
+        // $this->mergeConfigFrom(__DIR__ . '/../config/scribe.php', 'scribe');
     }
 
     protected function registerCommands(): void
@@ -108,7 +102,8 @@ class ScribeServiceProvider extends ServiceProvider
             $this->commands([
                 GenerateDocumentation::class,
                 MakeStrategy::class,
-                Upgrade::class,
+                // Retired for the same reasons as the upgrade check
+                // Upgrade::class,
                 DiffConfig::class,
             ]);
         }
