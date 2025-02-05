@@ -30,12 +30,8 @@ class ResponseCalls extends Strategy
 
     public function __invoke(ExtractedEndpointData $endpointData, array $settings = []): ?array
     {
-        return $this->makeResponseCallIfConditionsPass($endpointData, $settings);
-    }
-
-    public function makeResponseCallIfConditionsPass(ExtractedEndpointData $endpointData, array $settings): ?array
-    {
-        if (!$this->shouldMakeApiCall($endpointData)) {
+        // Don't attempt a response call if there are already successful responses
+        if ($endpointData->responses->hasSuccessResponse()) {
             return null;
         }
 
@@ -260,16 +256,6 @@ class ResponseCalls extends Strategy
         $kernel->terminate($request, $response);
 
         return $response;
-    }
-
-    protected function shouldMakeApiCall(ExtractedEndpointData $endpointData): bool
-    {
-        // Don't attempt a response call if there are already successful responses
-        if ($endpointData->responses->hasSuccessResponse()) {
-            return false;
-        }
-
-        return true;
     }
 
     /**

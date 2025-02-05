@@ -28,7 +28,6 @@ class ExtractorTest extends BaseLaravelTest
                 Strategies\QueryParameters\GetFromQueryParamTag::class,
             ],
             'headers' => [
-                Strategies\Headers\GetFromRouteRules::class,
                 Strategies\Headers\GetFromHeaderTag::class,
             ],
             'bodyParameters' => [
@@ -206,20 +205,6 @@ class ExtractorTest extends BaseLaravelTest
         ];
         $parsed = $this->process($route);
         $this->assertNotEmpty($parsed->responses);
-    }
-
-    /** @test */
-    public function adds_override_for_headers_based_on_deprecated_route_apply_rules()
-    {
-        $this->config['strategies']['headers'] = [Strategies\Headers\GetFromRouteRules::class];
-
-        $extractor = $this->makeExtractor();
-        $route = $this->createRoute('GET', '/get', 'dummy');
-        $parsed = $extractor->processRoute($route, ['headers' => ['content-type' => 'application/json+vnd']]);
-        $this->assertArraySubset($parsed->headers, ['content-type' => 'application/json+vnd']);
-
-        $parsed = $extractor->processRoute($route);
-        $this->assertEmpty($parsed->headers);
     }
 
     /** @test */
