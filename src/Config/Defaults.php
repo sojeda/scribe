@@ -25,7 +25,6 @@ class Defaults
     ];
 
     public const HEADERS_STRATEGIES = [
-        Strategies\Headers\GetFromRouteRules::class,
         Strategies\Headers\GetFromHeaderAttribute::class,
         Strategies\Headers\GetFromHeaderTag::class,
     ];

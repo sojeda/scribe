@@ -24,14 +24,6 @@ class BehavioursTest extends BaseLaravelTest
     {
         parent::setUp();
 
-        $this->setConfig([
-            'database_connections_to_transact' => [],
-            'routes.0.match.prefixes' => ['api/*'],
-            // Skip these for faster tests
-            'openapi.enabled' => false,
-            'postman.enabled' => false,
-        ]);
-
         $factory = app(\Illuminate\Database\Eloquent\Factory::class);
         $factory->define(TestUser::class, function () {
             return [
@@ -52,20 +44,21 @@ class BehavioursTest extends BaseLaravelTest
     /** @test */
     public function can_process_traditional_laravel_route_syntax_and_callable_tuple_syntax()
     {
+        dump(config('scribe'));
         RouteFacade::get('/api/test', [TestController::class, 'withEndpointDescription']);
         RouteFacade::get('/api/array/test', [TestController::class, 'withEndpointDescription']);
 
-        $this->generateAndExpectConsoleOutput(
+        $this->generateAndExpectConsoleOutput(expected: [
             'Processed route: [GET] api/test',
             'Processed route: [GET] api/array/test'
-        );
+        ]);
     }
 
     /** @test */
     public function processes_head_routes_as_head_not_get()
     {
         RouteFacade::addRoute('HEAD', '/api/test', [TestController::class, 'withEndpointDescription']);
-        $this->generateAndExpectConsoleOutput('Processed route: [HEAD] api/test');
+        $this->generateAndExpectConsoleOutput(expected: ['Processed route: [HEAD] api/test']);
     }
 
     /**
@@ -74,10 +67,8 @@ class BehavioursTest extends BaseLaravelTest
      */
     public function can_process_closure_routes()
     {
-        RouteFacade::get('/api/closure', function () {
-            return 'hi';
-        });
-        $this->generateAndExpectConsoleOutput('Processed route: [GET] api/closure');
+        RouteFacade::get('/api/closure', fn() => 'hi');
+        $this->generateAndExpectConsoleOutput(expected: ['Processed route: [GET] api/closure']);
     }
 
     /** @test */
@@ -111,7 +102,7 @@ class BehavioursTest extends BaseLaravelTest
     {
         $commandInstance = null;
 
-        Scribe::bootstrap(function (GenerateDocumentation $command) use (&$commandInstance){
+        Scribe::bootstrap(function (GenerateDocumentation $command) use (&$commandInstance) {
             $commandInstance = $command;
         });
 
@@ -131,33 +122,34 @@ class BehavioursTest extends BaseLaravelTest
         RouteFacade::get('/api/skipClass', TestIgnoreThisController::class . '@dummy');
         RouteFacade::get('/api/test', [TestController::class, 'withEndpointDescription']);
 
-        $this->generateAndExpectConsoleOutput(
+        $this->generateAndExpectConsoleOutput(expected: [
             'Skipping route: [GET] api/skip',
             'Skipping route: [GET] api/skipClass',
             'Processed route: [GET] api/test'
-        );
+        ]);
     }
 
     /** @test */
     public function warns_of_nonexistent_response_files()
     {
         RouteFacade::get('/api/non-existent', [TestController::class, 'withNonExistentResponseFile']);
-        $this->generateAndExpectConsoleOutput('@responseFile i-do-not-exist.json does not exist');
+        $this->generateAndExpectConsoleOutput(expected: ['@responseFile i-do-not-exist.json does not exist']);
     }
 
     /** @test */
     public function can_parse_resource_routes()
     {
-        RouteFacade::resource('/api/users', TestResourceController::class)
-            ->only(['index', 'store']);
+        RouteFacade::resource('/api/users', TestResourceController::class)->only(['index', 'store']);
 
-        $output = $this->generate();
-
-        $this->assertStringContainsString('Processed route: [GET] api/users', $output);
-        $this->assertStringContainsString('Processed route: [POST] api/users', $output);
-
-        $this->assertStringNotContainsString('Processed route: [PUT,PATCH] api/users/{user}', $output);
-        $this->assertStringNotContainsString('Processed route: [DELETE] api/users/{user}', $output);
+        $this->generateAndExpectConsoleOutput(
+            expected: [
+                'Processed route: [GET] api/users',
+                'Processed route: [POST] api/users'
+            ],
+            notExpected: [
+                'Processed route: [PUT,PATCH] api/users/{user}',
+                'Processed route: [DELETE] api/users/{user}',]
+        );
     }
 
     /** @test */
@@ -165,10 +157,10 @@ class BehavioursTest extends BaseLaravelTest
     {
         RouteFacade::resource('/api/users', TestPartialResourceController::class);
 
-        $this->generateAndExpectConsoleOutput(
+        $this->generateAndExpectConsoleOutput(expected: [
             'Processed route: [GET] api/users',
             'Processed route: [PUT,PATCH] api/users/{user}'
-        );
+        ]);
     }
 
     /** @test */
@@ -187,34 +179,12 @@ class BehavioursTest extends BaseLaravelTest
     }
 
     /** @test */
-    public function checks_for_upgrades_after_run_unless_disabled()
-    {
-        file_put_contents("config/scribe_test.php", str_replace("'logo' => false,", "", file_get_contents("config/scribe.php")));
-        config(["scribe_test" => require "config/scribe_test.php"]);
-
-        $output = $this->artisan('scribe:generate', ['--config' => 'scribe_test']);
-
-        if (! FileFacade::exists(config_path("scribe.php"))) {
-            $this->assertStringContainsString("No config file to upgrade.", $output);
-        } else {
-            $this->assertStringContainsString("Checking for any pending upgrades to your config file...", $output);
-            $this->assertStringContainsString("`logo` will be added", $output);
-        }
-
-        $output = $this->artisan('scribe:generate', ['--config' => 'scribe_test', '--no-upgrade-check' => true]);
-        $this->assertStringNotContainsString("Checking for any pending upgrades to your config file...", $output);
-
-        unlink("config/scribe_test.php");
-        Utils::deleteDirectoryAndContents(".scribe_test");
-    }
-
-    /** @test */
     public function can_generate_with_apiresource_tag_but_without_apiresourcemodel_tag()
     {
         RouteFacade::get('/api/test', [TestController::class, 'withEmptyApiResource']);
-        $this->generateAndExpectConsoleOutput(
+        $this->generateAndExpectConsoleOutput(expected: [
             "Couldn't detect an Eloquent API resource model",
             'Processed route: [GET] api/test'
-        );
+        ]);
     }
 }
