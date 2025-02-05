@@ -1,17 +1,17 @@
 <?php
 
-use Knuckles\Scribe\Config\AuthIn;
-use Knuckles\Scribe\Config\ExternalTheme;
+use Knuckles\Scribe\Config;
+use Knuckles\Scribe\Config\{AuthIn,ExternalTheme};
 use Knuckles\Scribe\Extracting\Strategies;
-use Knuckles\Scribe;
+use function Knuckles\Scribe\Config\{overrideResults, addStrategies, removeStrategies, withConfiguredStrategy};
 
 /**
  * For documentation, use your IDE's autocomplete features, or see https://scribe.knuckles.wtf/laravel/reference/config
  */
 
-return Scribe\Config\Factory::make(
-    extracting: Scribe\Config\Extracting::with(
-        routes: Scribe\Config\Routes::match(
+return Config\Factory::make(
+    extracting: Config\Extracting::with(
+        routes: Config\Routes::match(
             prefixes: ['api/*'],
             domains: ['*'],
             alwaysInclude: [],
@@ -21,7 +21,7 @@ return Scribe\Config\Factory::make(
         databaseConnectionsToTransact: [config('database.default')],
         fakerSeedForExamples: 1234,
         dataSourcesForExampleModels: ['factoryCreate', 'factoryMake', 'databaseFirst'],
-        auth: Scribe\Config\Extracting::auth(
+        auth: Config\Extracting::auth(
             enabled: false,
             default: false,
             in: AuthIn::BEARER,
@@ -31,18 +31,20 @@ return Scribe\Config\Factory::make(
               You can retrieve your token by visiting your dashboard and clicking <b>Generate API token</b>.
             MARKDOWN
         ),
-        strategies: Scribe\Config\Extracting::strategies(
-            metadata: Scribe\Config\Defaults::metadataStrategies(),
-            urlParameters: Scribe\Config\Defaults::urlParametersStrategies(),
-            queryParameters: Scribe\Config\Defaults::queryParametersStrategies(),
-            headers: Scribe\Config\Defaults::headersStrategies()
-                ->override([
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                ]),
-            bodyParameters: Scribe\Config\Defaults::bodyParametersStrategies(),
-            responses: Scribe\Config\Defaults::responsesStrategies()
-                ->configure(Strategies\Responses\ResponseCalls::withSettings(
+        strategies: Config\Extracting::strategies(
+        // Use addStrategies() to add your custom strategies. Use removeStrategies() to remove the included ones.
+        // Use overrideResults() to override the data returned from a strategy. Use withConfiguredStrategy() to configure a strategy which supports it.
+            metadata: Config\Defaults::METADATA_STRATEGIES,
+            urlParameters: Config\Defaults::URL_PARAMETERS_STRATEGIES,
+            queryParameters: Config\Defaults::QUERY_PARAMETERS_STRATEGIES,
+            headers: overrideResults(Config\Defaults::HEADERS_STRATEGIES, [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ]),
+            bodyParameters: Config\Defaults::BODY_PARAMETERS_STRATEGIES,
+            responses: withConfiguredStrategy(
+                Config\Defaults::RESPONSES_STRATEGIES,
+                Strategies\Responses\ResponseCalls::withSettings(
                     only: ['GET *'],
                     config: [
                         'app.env' => 'documentation',
@@ -53,15 +55,15 @@ return Scribe\Config\Factory::make(
                     fileParams: [],
                     cookies: [],
                 )),
-            responseFields: Scribe\Config\Defaults::responseFieldsStrategies(),
+            responseFields: Config\Defaults::RESPONSE_FIELDS_STRATEGIES,
         )
     ),
-    output: Scribe\Config\Output::with(
-        type: Scribe\Config\Output::externalLaravelType(
+    output: Config\Output::with(
+        type: Config\Output::externalLaravelType(
             theme: ExternalTheme::Scalar,
             docsUrl: '/docs',
         ),
-        title: 'Our Awesome API',
+        title: config('app.name').' API Documentation',
         description: '',
         baseUrls: [
             "production" => config("app.base_url"),
@@ -69,12 +71,22 @@ return Scribe\Config\Factory::make(
         exampleLanguages: ['bash', 'javascript'],
         logo: false,
         lastUpdated: 'Last updated: {date:F j, Y}',
-        introText: <<<MARKDOWN
-          This documentation aims to provide all the information you need to work with our API.
-
-          <aside>As you scroll, you'll see code examples for working with the API in different programming languages in the dark area to the right (or as part of the content on mobile).
-          You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).</aside>
-        MARKDOWN,
+        postman: Config\Output::postman(
+            enabled: true,
+            overrides: [
+                // 'info.version' => '2.0.0',
+            ]
+        ),
+        openApi: Config\Output::openApi(
+            enabled: true,
+            overrides: [
+                // 'info.version' => '2.0.0',
+            ],
+            generators: [],
+        ),
+        tryItOut: Config\Output::tryItOut(
+            enabled: true,
+        ),
         groupsOrder: [
             // 'This group will come first',
             // 'This group will come next' => [
@@ -87,21 +99,11 @@ return Scribe\Config\Factory::make(
             //     ]
             // ]
         ],
-        postman: Scribe\Config\Output::postman(
-            enabled: true,
-            overrides: [
-                // 'info.version' => '2.0.0',
-            ]
-        ),
-        openApi: Scribe\Config\Output::openApi(
-            enabled: true,
-            overrides: [
-                // 'info.version' => '2.0.0',
-            ],
-            generators: [],
-        ),
-        tryItOut: Scribe\Config\Output::tryItOut(
-            enabled: true,
-        )
+        introText: <<<MARKDOWN
+          This documentation aims to provide all the information you need to work with our API.
+
+          <aside>As you scroll, you'll see code examples for working with the API in different programming languages in the dark area to the right (or as part of the content on mobile).
+          You can switch the language used with the tabs at the top right (or from the nav menu at the top left on mobile).</aside>
+        MARKDOWN,
     )
 );

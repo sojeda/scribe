@@ -2,7 +2,6 @@
 
 namespace Knuckles\Scribe\Config;
 
-use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 
 class Serializer

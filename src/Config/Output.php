@@ -14,30 +14,30 @@ class Output
         array   $exampleLanguages = ['bash', 'javascript'],
         bool    $logo = false,
         string  $lastUpdated = 'Last updated: {date:F j, Y}',
-        string  $introText = "",
-        array   $groupsOrder = [],
         array   $postman = ['enabled' => true],
         array   $openApi = ['enabled' => true],
         array   $tryItOut = ['enabled' => true],
+        array   $groupsOrder = [],
+        string  $introText = "",
     ): static
     {
         return new static(...get_defined_vars());
     }
 
     public function __construct(
-        public ?string $title = null,
-        public string  $description = '',
-        public array   $baseUrls = [], /* If empty, Scribe will use config('app.url') */
-        public array   $groupsOrder = [],
-        public string  $introText = "",
-        public array   $exampleLanguages = ['bash', 'javascript'],
-        public bool    $logo = false,
-        public string  $lastUpdated = 'Last updated: {date:F j, Y}',
+        public ?string $title,
+        public string  $description,
+        public array   $baseUrls, /* If empty, Scribe will use config('app.url') */
+        public array   $groupsOrder,
+        public string  $introText,
+        public array   $exampleLanguages,
+        public bool    $logo,
+        public string  $lastUpdated,
 
-        public array   $type = [],
-        public array   $postman = ['enabled' => true],
-        public array   $openApi = ['enabled' => true],
-        public array   $tryItOut = ['enabled' => true],
+        public array   $type,
+        public array   $postman,
+        public array   $openApi,
+        public array   $tryItOut,
     )
     {
     }

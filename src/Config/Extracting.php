@@ -6,16 +6,31 @@ use Illuminate\Support\Arr;
 
 class Extracting
 {
+    public static function with(
+        Routes  $routes,
+        string  $defaultGroup = 'Endpoints',
+        array   $databaseConnectionsToTransact = [],
+        ?int    $fakerSeedForExamples = 1234,
+        array   $dataSourcesForExampleModels = ['factoryCreate', 'factoryMake', 'databaseFirst'],
+        array   $auth = [],
+        array   $strategies = [],
+        ?string $routeMatcher = \Knuckles\Scribe\Matching\RouteMatcher::class,
+        ?string $fractalSerializer = null,
+    ): Extracting
+    {
+        return new self(...get_defined_vars());
+    }
+
     public function __construct(
         public Routes  $routes,
-        public string  $defaultGroup = 'Endpoints',
-        public array   $databaseConnectionsToTransact = [],
-        public ?int    $fakerSeedForExamples = 1234,
-        public array   $dataSourcesForExampleModels = ['factoryCreate', 'factoryMake', 'databaseFirst'],
-        public array   $auth = [],
-        public array   $strategies = [],
-        public ?string $routeMatcher = null,
-        public ?string $fractalSerializer = null,
+        public string  $defaultGroup,
+        public array   $databaseConnectionsToTransact,
+        public ?int    $fakerSeedForExamples,
+        public array   $dataSourcesForExampleModels,
+        public array   $auth,
+        public array   $strategies,
+        public ?string $routeMatcher,
+        public ?string $fractalSerializer,
     )
     {
     }
@@ -34,31 +49,16 @@ class Extracting
     }
 
     public static function strategies(
-        StrategyListWrapper $metadata,
-        StrategyListWrapper $urlParameters,
-        StrategyListWrapper $queryParameters,
-        StrategyListWrapper $headers,
-        StrategyListWrapper $bodyParameters,
-        StrategyListWrapper $responses,
-        StrategyListWrapper $responseFields,
+        array $metadata,
+        array $urlParameters,
+        array $queryParameters,
+        array $headers,
+        array $bodyParameters,
+        array $responses,
+        array $responseFields,
     ): array
     {
-        return array_map(fn($listWrapper) => $listWrapper->toArray(), get_defined_vars());
-    }
-
-    public static function with(
-        Routes  $routes,
-        string  $defaultGroup = 'Endpoints',
-        array   $databaseConnectionsToTransact = [],
-        ?int    $fakerSeedForExamples = 1234,
-        array   $dataSourcesForExampleModels = ['factoryCreate', 'factoryMake', 'databaseFirst'],
-        array   $auth = [],
-        array   $strategies = [],
-        ?string $routeMatcher = \Knuckles\Scribe\Matching\RouteMatcher::class,
-        ?string $fractalSerializer = null,
-    ): Extracting
-    {
-        return new self(...get_defined_vars());
+        return get_defined_vars();
     }
 
     public function serializeInto(array $config)
