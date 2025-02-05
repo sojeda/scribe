@@ -52,7 +52,10 @@
         "psr-4": {
             "Knuckles\\Scribe\\": "src/",
             "Knuckles\\Camel\\": "camel/"
-        }
+        },
+        "files": [
+          "src/Config/strategies.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
