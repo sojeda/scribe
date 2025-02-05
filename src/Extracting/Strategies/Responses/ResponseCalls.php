@@ -312,6 +312,13 @@ class ResponseCalls extends Strategy
         array $cookies = [],
     ): array
     {
-        return static::wrapWithSettings(...get_defined_vars());
+        return static::wrapWithSettings(
+            static::class, only: $only, except: $except, otherSettings: compact(
+            'config',
+            'queryParams',
+            'bodyParams',
+            'fileParams',
+            'cookies',
+        ));
     }
 }

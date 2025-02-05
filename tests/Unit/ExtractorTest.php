@@ -170,21 +170,6 @@ class ExtractorTest extends BaseLaravelTest
     }
 
     /** @test */
-    public function invokes_strategy_based_on_deprecated_route_apply_rules()
-    {
-        $this->config['strategies']['responses'] = [Strategies\Responses\ResponseCalls::class];
-
-        $route = $this->createRoute('GET', '/get', 'shouldFetchRouteResponse');
-        $extractor = $this->makeExtractor();
-        // Use the old routeApply rules rather than new settings
-        $parsed = $extractor->processRoute($route, ['response_calls' => ['methods' => ['POST']]]);
-        $this->assertEmpty($parsed->responses);
-
-        $parsed = $extractor->processRoute($route, ['response_calls' => ['methods' => ['GET']]]);
-        $this->assertNotEmpty($parsed->responses);
-    }
-
-    /** @test */
     public function invokes_strategy_based_on_new_strategy_configs()
     {
         $route = $this->createRoute('GET', '/get', 'shouldFetchRouteResponse');
@@ -208,7 +193,7 @@ class ExtractorTest extends BaseLaravelTest
     }
 
     /** @test */
-    public function adds_override_for_headers_based_on_strategy_configs()
+    public function overrides_headers_based_on_short_strategy_config()
     {
         $route = $this->createRoute('GET', '/get', 'dummy');
         $this->config['strategies']['headers'] = [Strategies\Headers\GetFromHeaderAttribute::class];
@@ -227,6 +212,33 @@ class ExtractorTest extends BaseLaravelTest
         ];
         $parsed = $this->process($route);
         $this->assertArraySubset($parsed->headers, $headers);
+    }
+
+    /** @test */
+    public function overrides_headers_based_on_extended_strategy_config()
+    {
+        $route = $this->createRoute('GET', '/get', 'dummy');
+        $this->config['strategies']['headers'] = [Strategies\Headers\GetFromHeaderAttribute::class];
+        $parsed = $this->process($route);
+        $this->assertEmpty($parsed->headers);
+
+        $headers = [
+            'accept' => 'application/json',
+            'Content-Type' => 'application/json+vnd',
+        ];
+        $this->config['strategies']['headers'] = [
+            Strategies\Headers\GetFromHeaderAttribute::class,
+            ['override', ['with' => $headers, 'only' => ['GET *']]],
+        ];
+        $parsed = $this->process($route);
+        $this->assertArraySubset($parsed->headers, $headers);
+
+        $this->config['strategies']['headers'] = [
+            Strategies\Headers\GetFromHeaderAttribute::class,
+            ['override', ['with' => $headers, 'only' => [], 'except' => ['GET *']]],
+        ];
+        $parsed = $this->process($route);
+        $this->assertEmpty($parsed->headers);
     }
 
     /**

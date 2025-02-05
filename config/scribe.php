@@ -37,7 +37,7 @@ return Config\Factory::make(
             metadata: Config\Defaults::METADATA_STRATEGIES,
             urlParameters: Config\Defaults::URL_PARAMETERS_STRATEGIES,
             queryParameters: Config\Defaults::QUERY_PARAMETERS_STRATEGIES,
-            headers: overrideResults(Config\Defaults::HEADERS_STRATEGIES, [
+            headers: overrideResults(Config\Defaults::HEADERS_STRATEGIES, with: [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ]),

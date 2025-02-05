@@ -522,8 +522,7 @@ class OutputTest extends BaseLaravelTest
     /** @test */
     public function generates_correct_url_params_from_non_resource_routes_and_model_binding()
     {
-        RouteFacade::get('posts/{post}/users', function (TestPost $post) {
-        });
+        RouteFacade::get('posts/{post}/users', fn (TestPost $post) => null);
 
         $this->generate();
 
@@ -537,9 +536,7 @@ class OutputTest extends BaseLaravelTest
         $this->setConfig(['routes.0.exclude' => ['*']]);
         Utils::copyDirectory(__DIR__ . '/../Fixtures/.scribe', '.scribe');
 
-        $output = $this->generate(['--no-extraction' => true]);
-
-        $this->assertStringNotContainsString("Processing route", $output);
+        $this->generateAndExpectConsoleOutput(['--no-extraction' => true], notExpected: ["Processing route"]);
 
         $crawler = new Crawler(file_get_contents($this->htmlOutputPath()));
         [$intro, $auth] = $crawler->filter('h1 + p')->getIterator();

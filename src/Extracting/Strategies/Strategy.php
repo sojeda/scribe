@@ -42,9 +42,10 @@ abstract class Strategy
      * @return array{string,array} Tuple of strategy class FQN and specified settings.
      */
     public static function wrapWithSettings(
+        string $strategyName = self::class,
         array $only = ['*'],
         array $except = [],
-        ...$otherSettings
+        array $otherSettings = []
     ): array
     {
         if (!empty($only) && !empty($except)) {
@@ -54,7 +55,7 @@ abstract class Strategy
         }
 
         return [
-            static::class,
+            $strategyName,
             ['only' => $only, 'except' => $except, ...$otherSettings],
         ];
     }

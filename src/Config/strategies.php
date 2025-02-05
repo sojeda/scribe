@@ -3,14 +3,22 @@
 namespace Knuckles\Scribe\Config;
 
 use Illuminate\Support\Arr;
+use Knuckles\Scribe\Extracting\Strategies\Strategy;
 
 // Strategies can be:
 // 1. (Original) A class name, e.g. Strategies\Responses\ResponseCalls::class
 // 2. (New) A tuple containing the class name as item 1, and its config array as item 2
 // 3. (New) A tuple containing "override" as item 1, and the values to override array as item 2
-function overrideResults(array $strategies, array $valuesToOverride): array
+/**
+ * @param array $strategies
+ * @param array $with
+ * @param array $only The routes that should be overridden. Same format as the route matcher.
+ * @param array $except The routes that should not be overridden. Same format as the route matcher.
+ * @return array
+ */
+function overrideResults(array $strategies, array $with, array $only = ['*'], array $except = []): array
 {
-    $overrideStrategy = ['override', $valuesToOverride];
+    $overrideStrategy = Strategy::wrapWithSettings('override', only: $only, except: $except, otherSettings: ['with' => $with]);
     return addStrategies($strategies, [$overrideStrategy]);
 }
 
