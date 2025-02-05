@@ -33,6 +33,8 @@ abstract class Strategy
     abstract public function __invoke(ExtractedEndpointData $endpointData, array $settings = []): ?array;
 
     /**
+     * Helper method that returns a tuple of [$strategyName, $settingsArray].
+     * Main real advantage is that it validates the mutual exclusion of $only and $except.
      * @param array $only The routes which this strategy should be applied to. Can not be specified with $except.
      *   Specify route names ("users.index", "users.*"), or method and path ("GET *", "POST /safe/*").
      * @param array $except The routes which this strategy should be applied to. Can not be specified with $only.
@@ -53,8 +55,7 @@ abstract class Strategy
 
         return [
             static::class,
-            // This would be ...$otherSettings, but it's PHP 8.1+
-            array_merge(['only' => $only, 'except' => $except], $otherSettings),
+            ['only' => $only, 'except' => $except, ...$otherSettings],
         ];
     }
 }
