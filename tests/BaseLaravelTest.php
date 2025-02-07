@@ -86,8 +86,9 @@ class BaseLaravelTest extends TestCase
                 )
             ),
             output: Config\Output::with(
-                type: Config\Output::staticType(
+                type: Config\Output::laravelType(
                     theme: Config\InHouseTheme::Legacy,
+                    docsUrl: '/apidocs'
                 ),
                 baseUrls: [
                     "production" => config("app.base_url"),
