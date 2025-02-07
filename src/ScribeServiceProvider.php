@@ -7,11 +7,9 @@ use Illuminate\Support\Str;
 use Knuckles\Scribe\Commands\DiffConfig;
 use Knuckles\Scribe\Commands\GenerateDocumentation;
 use Knuckles\Scribe\Commands\MakeStrategy;
-use Knuckles\Scribe\Commands\Upgrade;
 use Knuckles\Scribe\Matching\RouteMatcher;
 use Knuckles\Scribe\Matching\RouteMatcherInterface;
 use Knuckles\Scribe\Tools\BladeMarkdownEngine;
-use Knuckles\Scribe\Tools\Utils;
 use Knuckles\Scribe\Writing\CustomTranslationsLoader;
 
 class ScribeServiceProvider extends ServiceProvider
@@ -44,10 +42,8 @@ class ScribeServiceProvider extends ServiceProvider
      */
     protected function bootRoutes()
     {
-        if (
-            Str::endsWith(config('scribe.type', 'static'), 'laravel') &&
-            config('scribe.laravel.add_routes', false)
-        ) {
+        $docsType = config('scribe.type', 'laravel');
+        if (Str::endsWith($docsType, 'laravel') && config('scribe.laravel.add_routes', true)) {
             $routesPath = __DIR__ . '/../routes/laravel.php';
             $this->loadRoutesFrom($routesPath);
         }
@@ -93,7 +89,7 @@ class ScribeServiceProvider extends ServiceProvider
             __DIR__ . '/../config/scribe.php' => $this->app->configPath('scribe.php'),
         ], 'scribe-config');
 
-        // $this->mergeConfigFrom(__DIR__ . '/../config/scribe.php', 'scribe');
+        $this->mergeConfigFrom(__DIR__ . '/../config/scribe.php', 'scribe');
     }
 
     protected function registerCommands(): void
