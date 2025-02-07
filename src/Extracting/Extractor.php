@@ -14,6 +14,7 @@ use Illuminate\Support\Str;
 use Knuckles\Camel\Extraction\ResponseCollection;
 use Knuckles\Camel\Extraction\ResponseField;
 use Knuckles\Camel\Output\OutputEndpointData;
+use Knuckles\Scribe\Extracting\Strategies\Override;
 use Knuckles\Scribe\Tools\DocumentationConfig;
 use Knuckles\Scribe\Tools\RoutePatternMatcher;
 
@@ -41,7 +42,7 @@ class Extractor
 
     /**
      * @param Route $route
-     * @param array $routeRules Rules to apply when generating documentation for this route
+     * @param array $routeRules Rules to apply when generating documentation for this route. Deprecated. Use strategy config instead.
      *
      * @return ExtractedEndpointData
      *
@@ -195,7 +196,7 @@ class Extractor
      *
      * @param string $stage
      * @param ExtractedEndpointData $endpointData
-     * @param array $rulesToApply
+     * @param array $rulesToApply Deprecated. Use strategy config instead.
      * @param callable $handler Function to run after each strategy returns its results (an array).
      *
      */
@@ -205,32 +206,29 @@ class Extractor
     {
         $strategies = $this->config->get("strategies.$stage", []);
 
-        $overrides = [];
         foreach ($strategies as $strategyClassOrTuple) {
             if (is_array($strategyClassOrTuple)) {
-                [$strategyClass, $settings] = $strategyClassOrTuple;
+                [$strategyClass, &$settings] = $strategyClassOrTuple;
                 if ($strategyClass == 'override') {
-                    $overrides = $settings;
-                    continue;
+                    $strategyClass = Override::class;
+                    // Overrides can be short: ['override', ['key' => 'value']],
+                    // or extended ['override', ['with' => ['key' => 'value'], 'only' => ['GET *'], 'except' => []]],
+                    $settingsFormat = array_key_exists('with', $settings) ? 'extended' : 'short';
+                    $settings = match($settingsFormat) {
+                        'extended' => $settings,
+                        'short' => ['with' => $settings],
+                    };
                 }
-
-                $settings = self::transformOldRouteRulesIntoNewSettings($stage, $rulesToApply, $strategyClass, $settings);
             } else {
                 $strategyClass = $strategyClassOrTuple;
-                $settings = self::transformOldRouteRulesIntoNewSettings($stage, $rulesToApply, $strategyClass);
+                $settings = [];
             }
 
-            $routesToSkip = $settings["except"] ?? [];
-            $routesToInclude = $settings["only"] ?? [];
+            $routesToExclude = Arr::wrap($settings["except"] ?? []);
+            $routesToInclude = Arr::wrap($settings["only"] ?? []);
 
-            if (!empty($routesToSkip)) {
-                if (RoutePatternMatcher::matches($endpointData->route, $routesToSkip)) {
-                    continue;
-                }
-            } elseif (!empty($routesToInclude)) {
-                if (!RoutePatternMatcher::matches($endpointData->route, $routesToInclude)) {
-                    continue;
-                }
+            if ($this->shouldSkipRoute($endpointData->route, $routesToExclude, $routesToInclude)) {
+                continue;
             }
 
             $strategy = new $strategyClass($this->config);
@@ -239,10 +237,16 @@ class Extractor
                 $handler($results);
             }
         }
+    }
 
-        if (!empty($overrides)) {
-            $handler($overrides);
+    public function shouldSkipRoute($route, array $routesToExclude, array $routesToInclude): bool
+    {
+        if (!empty($routesToExclude) && RoutePatternMatcher::matches($route, $routesToExclude)) {
+            return true;
+        } elseif (!empty($routesToInclude) && !RoutePatternMatcher::matches($route, $routesToInclude)) {
+            return true;
         }
+        return false;
     }
 
     /**
@@ -469,14 +473,8 @@ class Extractor
         }
     }
 
-    // In the past, we defined rules at the `routes` level;
-    // currently, they should be defined as parameters to the ResponseCalls strategy
     public static function transformOldRouteRulesIntoNewSettings($stage, $rulesToApply, $strategyName, $strategySettings = [])
     {
-        if ($stage == 'headers' && Str::is('*RouteRules*', $strategyName)) {
-            return $rulesToApply;
-        }
-
         if ($stage == 'responses' && Str::is('*ResponseCalls*', $strategyName) &&!empty($rulesToApply['response_calls'])) {
             // Transform `methods` to `only`
             $strategySettings = [];
