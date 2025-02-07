@@ -22,7 +22,7 @@ class ResponseCallsTest extends BaseLaravelTest
     {
         $route = LaravelRouteFacade::post('/shouldFetchRouteResponse', [TestController::class, 'shouldFetchRouteResponse']);
 
-        $responses = $this->invokeStrategy($route, settings: ['methods' => '*']);
+        $responses = $this->invokeStrategy($route);
 
         $this->assertEquals(200, $responses[0]['status']);
         $this->assertArraySubset([
@@ -39,7 +39,22 @@ class ResponseCallsTest extends BaseLaravelTest
     {
         $route = RouteFacade::post('/withFormDataParams', [TestController::class, 'withFormDataParams']);
 
-        $responses = $this->invokeStrategy($route, settings: ['methods' => 'POST *']);
+        /* This doesn't work. It always gives an error, "the file failed to upload". However, uploading files worked when they are extracted params
+        $endpointData = ExtractedEndpointData::fromRoute($route, [ 'headers' => [ 'accept' => 'application/json' ] ]);
+        $responses = $this->invokeStrategy($endpointData, settings: [
+            'fileParams' => [ 'image' => 'config/scribe.php' ],
+            'bodyParams' => [ 'name' => 'cat.jpg' ]
+        ]);
+        */
+        $this->setConfig([
+            'strategies.responses' => [
+                [ResponseCalls::class,
+                    ['only' => 'POST *']
+                ],
+            ]
+        ]);
+        $parsed = (new Extractor())->processRoute($route);
+        $responses = $parsed->responses->toArray();
 
         $this->assertCount(1, $responses);
         $this->assertArraySubset([
@@ -64,7 +79,6 @@ class ResponseCallsTest extends BaseLaravelTest
         ]);
 
         $responses = $this->invokeStrategy($endpointData, settings: [
-            'methods' => ['*'],
             'queryParams' => [
                 'queryParam' => 'queryValue',
             ],
@@ -86,12 +100,11 @@ class ResponseCallsTest extends BaseLaravelTest
     public function can_override_application_config_during_response_call()
     {
         $route = LaravelRouteFacade::post('/echoesConfig', [TestController::class, 'echoesConfig']);
-        $responses = $this->invokeStrategy($route, settings: ['methods' => '*']);
+        $responses = $this->invokeStrategy($route);
         $originalValue = json_decode($responses[0]['content'], true)['app.env'];
 
         $now = time();
         $responses = $this->invokeStrategy($route, settings: [
-            'methods' => ['*'],
             'config' => [
                 'app.env' => $now,
             ],
@@ -122,7 +135,6 @@ class ResponseCallsTest extends BaseLaravelTest
             ],
         ]);
         $responses = $this->invokeStrategy($endpointData, settings: [
-            'methods' => ['*'],
             'queryParams' => [
                 'queryParam' => 'queryValue',
             ],
@@ -155,7 +167,7 @@ class ResponseCallsTest extends BaseLaravelTest
                 ],
             ]),
         ]);
-        $responses = $this->invokeStrategy($endpointData, settings: ['methods' => '*']);
+        $responses = $this->invokeStrategy($endpointData);
 
         $this->assertNull($responses);
     }
@@ -165,7 +177,7 @@ class ResponseCallsTest extends BaseLaravelTest
         return Extractor::transformOldRouteRulesIntoNewSettings('responses', $rules, ResponseCalls::class);
     }
 
-    protected function invokeStrategy(ExtractedEndpointData|Route $route, $settings): ?array
+    protected function invokeStrategy(ExtractedEndpointData|Route $route, $settings = []): ?array
     {
         $strategy = new ResponseCalls(new DocumentationConfig([]));
         return $strategy(

@@ -69,7 +69,7 @@ class ResponseCalls extends Strategy
         $hardcodedFileParams = collect($hardcodedFileParams)->map(function ($filePath) {
             $fileName = basename($filePath);
             return new UploadedFile(
-                $filePath, $fileName, mime_content_type($filePath), 0, false
+                $filePath, $fileName, mime_content_type($filePath), test: true
             );
         })->toArray();
         $fileParameters = array_merge($endpointData->fileParameters, $hardcodedFileParams);
