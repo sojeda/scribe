@@ -53,37 +53,21 @@ class OutputTest extends BaseLaravelTest
     /**
      * @test
      */
-    public function generates_laravel_type_output()
+    public function generates_static_type_output()
     {
         RouteFacade::post('/api/withQueryParameters', [TestController::class, 'withQueryParameters']);
-        // This test breaks because the routes are not added, since the service provider has already been loaded.
-        // However, since we've switched default to Laravel type, we should switch default for tests as well
-        // TODO
-        $this->setConfig([
-            'type' => 'laravel',
-            'laravel.add_routes' => true,
-            'laravel.docs_url' => '/apidocs',
-        ]);
+        $this->setConfig(['type' => 'static']);
         $this->setConfig(['postman.enabled' => true]);
         $this->setConfig(['openapi.enabled' => true]);
 
         $this->generateAndExpectConsoleOutput(expected: [
-            "Wrote Blade docs to: vendor/orchestra/testbench-core/laravel/resources/views/scribe",
-            "Wrote Laravel assets to: vendor/orchestra/testbench-core/laravel/public/vendor/scribe",
-            "Wrote Postman collection to: vendor/orchestra/testbench-core/laravel/storage/app/scribe/collection.json",
-            "Wrote OpenAPI specification to: vendor/orchestra/testbench-core/laravel/storage/app/scribe/openapi.yaml",
+            "Wrote HTML docs and assets to: public/docs/",
+            "Wrote Postman collection to: public/docs/collection.json"
         ]);
 
         $this->assertFileExists($this->postmanOutputPath(true));
         $this->assertFileExists($this->openapiOutputPath(true));
-        $this->assertFileExists($this->bladeOutputPath());
-
-        $response = $this->get('/apidocs');
-        $response->assertStatus(200);
-        $response = $this->get('/apidocs.postman');
-        $response->assertStatus(200);
-        $response = $this->get('/apidocs.openapi');
-        $response->assertStatus(200);
+        $this->assertFileExists($this->htmlOutputPath());
 
         unlink($this->postmanOutputPath(true));
         unlink($this->openapiOutputPath(true));
@@ -163,8 +147,9 @@ class OutputTest extends BaseLaravelTest
         $this->enableResponseCalls();
 
         $this->generateAndExpectConsoleOutput(expected: [
-            "Wrote HTML docs and assets to: public/docs/",
-            "Wrote Postman collection to: public/docs/collection.json"
+            "Wrote Blade docs to: vendor/orchestra/testbench-core/laravel/resources/views/scribe",
+            "Wrote Laravel assets to: vendor/orchestra/testbench-core/laravel/public/vendor/scribe",
+            "Wrote Postman collection to: vendor/orchestra/testbench-core/laravel/storage/app/scribe/collection.json",
         ]);
 
         $generatedCollection = json_decode(file_get_contents($this->postmanOutputPath()), true);
@@ -173,6 +158,27 @@ class OutputTest extends BaseLaravelTest
         $fixtureCollection = json_decode(file_get_contents(__DIR__ . '/../Fixtures/collection.json'), true);
 
         $this->assertEquals($fixtureCollection, $generatedCollection);
+    }
+
+    /** @test */
+    public function generates_and_adds_routes()
+    {
+        RouteFacade::post('/api/withBodyParameters', [TestController::class, 'withBodyParameters']);
+
+        $this->setConfig([
+            'type' => 'laravel',
+            'laravel.add_routes' => true,
+            'postman.enabled' => true,
+            'openapi.enabled' => true,
+        ]);
+        $this->generate();
+
+        $response = $this->get('/docs');
+        $response->assertStatus(200);
+        $response = $this->get('/docs.postman');
+        $response->assertStatus(200);
+        $response = $this->get('/docs.openapi');
+        $response->assertStatus(200);
     }
 
     /** @test */
@@ -202,8 +208,9 @@ class OutputTest extends BaseLaravelTest
         $this->enableResponseCalls();
 
         $this->generateAndExpectConsoleOutput(expected: [
-            "Wrote HTML docs and assets to: public/docs/",
-            "Wrote OpenAPI specification to: public/docs/openapi.yaml"
+            "Wrote Blade docs to: vendor/orchestra/testbench-core/laravel/resources/views/scribe",
+            "Wrote Laravel assets to: vendor/orchestra/testbench-core/laravel/public/vendor/scribe",
+            "Wrote OpenAPI specification to: vendor/orchestra/testbench-core/laravel/storage/app/scribe/openapi.yaml",
         ]);
 
         $generatedSpec = Yaml::parseFile($this->openapiOutputPath());
@@ -236,7 +243,7 @@ class OutputTest extends BaseLaravelTest
 
         $this->generate();
 
-        $this->assertFileContainsString($this->htmlOutputPath(), 'Лорем ипсум долор сит амет');
+        $this->assertFileContainsString($this->bladeOutputPath(), 'Лорем ипсум долор сит амет');
     }
 
     /** @test */
@@ -249,7 +256,7 @@ class OutputTest extends BaseLaravelTest
 
         $this->generate();
 
-        $crawler = new Crawler(file_get_contents($this->htmlOutputPath()));
+        $crawler = new Crawler(file_get_contents($this->bladeOutputPath()));
         $headings = $crawler->filter('h1')->getIterator();
         $this->assertCount(5, $headings); // intro, auth, three groups
         [$_, $_, $firstGroup, $secondGroup, $thirdGroup] = $headings;
@@ -291,7 +298,7 @@ class OutputTest extends BaseLaravelTest
 
         $this->generate();
 
-        $crawler = new Crawler(file_get_contents($this->htmlOutputPath()));
+        $crawler = new Crawler(file_get_contents($this->bladeOutputPath()));
         $headings = $crawler->filter('h1')->getIterator();
         $this->assertCount(6, $headings); // intro, auth, four groups
         [$_, $_, $firstGroup, $secondGroup, $thirdGroup, $fourthGroup] = $headings;
@@ -350,7 +357,7 @@ class OutputTest extends BaseLaravelTest
 
         $this->generate();
 
-        $crawler = new Crawler(file_get_contents($this->htmlOutputPath()));
+        $crawler = new Crawler(file_get_contents($this->bladeOutputPath()));
         $headings = $crawler->filter('h1')->getIterator();
         $this->assertCount(6, $headings); // intro, auth, four groups
         [$_, $_, $firstGroup, $secondGroup, $thirdGroup, $fourthGroup] = $headings;
@@ -400,7 +407,7 @@ class OutputTest extends BaseLaravelTest
 
         $this->generate();
 
-        $crawler = new Crawler(file_get_contents($this->htmlOutputPath()));
+        $crawler = new Crawler(file_get_contents($this->bladeOutputPath()));
         $headings = $crawler->filter('h1')->getIterator();
         $this->assertCount(6, $headings); // intro, auth, four groups
         [$_, $_, $firstGroup, $secondGroup, $thirdGroup, $fourthGroup] = $headings;
@@ -538,7 +545,7 @@ class OutputTest extends BaseLaravelTest
 
         $this->generateAndExpectConsoleOutput(['--no-extraction' => true], notExpected: ["Processing route"]);
 
-        $crawler = new Crawler(file_get_contents($this->htmlOutputPath()));
+        $crawler = new Crawler(file_get_contents($this->bladeOutputPath()));
         [$intro, $auth] = $crawler->filter('h1 + p')->getIterator();
         $this->assertEquals('Heyaa introduction!👋', trim($intro->firstChild->textContent));
         $this->assertEquals('This is just a test.', trim($auth->firstChild->textContent));
@@ -579,16 +586,16 @@ class OutputTest extends BaseLaravelTest
 
     }
 
-    protected function postmanOutputPath(bool $laravelType = false): string
+    protected function postmanOutputPath(bool $staticType = false): string
     {
-        return $laravelType
-            ? Storage::disk('local')->path('scribe/collection.json') : 'public/docs/collection.json';
+        return $staticType
+            ? 'public/docs/collection.json' : Storage::disk('local')->path('scribe/collection.json');
     }
 
-    protected function openapiOutputPath(bool $laravelType = false): string
+    protected function openapiOutputPath(bool $staticType = false): string
     {
-        return $laravelType
-            ? Storage::disk('local')->path('scribe/openapi.yaml') : 'public/docs/openapi.yaml';
+        return $staticType
+            ? 'public/docs/openapi.yaml' : Storage::disk('local')->path('scribe/openapi.yaml');
     }
 
     protected function htmlOutputPath(): string

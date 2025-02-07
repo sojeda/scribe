@@ -1,9 +1,10 @@
-<?php
+<?php /** @noinspection NonAsciiCharacters */
 
 namespace Knuckles\Scribe\Tests\GenerateDocumentation;
 
 use Illuminate\Support\Facades\File as FileFacade;
 use Illuminate\Support\Facades\Route as RouteFacade;
+use Illuminate\Support\Facades\Storage;
 use Knuckles\Scribe\Commands\GenerateDocumentation;
 use Knuckles\Scribe\Scribe;
 use Knuckles\Scribe\Tests\BaseLaravelTest;
@@ -44,7 +45,6 @@ class BehavioursTest extends BaseLaravelTest
     /** @test */
     public function can_process_traditional_laravel_route_syntax_and_callable_tuple_syntax()
     {
-        dump(config('scribe'));
         RouteFacade::get('/api/test', [TestController::class, 'withEndpointDescription']);
         RouteFacade::get('/api/array/test', [TestController::class, 'withEndpointDescription']);
 
@@ -72,7 +72,7 @@ class BehavioursTest extends BaseLaravelTest
     }
 
     /** @test */
-    public function calls_afterGenerating_hook()
+    public function calls_afterGenerating_hook_with_correct_paths()
     {
         $paths = [];
         Scribe::afterGenerating(function (array $outputPaths) use (&$paths) {
@@ -80,17 +80,45 @@ class BehavioursTest extends BaseLaravelTest
         });
         RouteFacade::get('/api/test', [TestController::class, 'withEndpointDescription']);
 
+
+        $this->setConfig([
+            'type' => 'laravel',
+            'laravel.add_routes' => true,
+            'laravel.docs_url' => '/apidocs',
+            'postman.enabled' => true,
+            'openapi.enabled' => true,
+        ]);
         $this->generate();
 
+        $ノ = DIRECTORY_SEPARATOR; // Cross-platform
         $this->assertEquals([
-            'html' => realpath('public/docs/index.html'),
-            'blade' => null,
-            'postman' => realpath('public/docs/collection.json') ?: null,
-            'openapi' => realpath('public/docs/openapi.yaml') ?: null,
+            'html' => null,
+            'blade' => resource_path("views{$ノ}scribe{$ノ}index.blade.php"),
+            'postman' => Storage::disk('local')->path("scribe{$ノ}collection.json"),
+            'openapi' => Storage::disk('local')->path("scribe{$ノ}openapi.yaml"),
             'assets' => [
-                'js' => realpath('public/docs/js'),
-                'css' => realpath('public/docs/css'),
-                'images' => realpath('public/docs/images'),
+                'js' => public_path("vendor{$ノ}scribe{$ノ}js"),
+                'css' => public_path("vendor{$ノ}scribe{$ノ}css"),
+                'images' => public_path("vendor{$ノ}scribe{$ノ}images"),
+            ],
+        ], $paths);
+
+        $this->setConfig([
+            'type' => 'static',
+            'static.output_path' => 'public/docs',
+            'postman.enabled' => false,
+            'openapi.enabled' => false,
+        ]);
+        $this->generate();
+        $this->assertEquals([
+            'html' => realpath("public{$ノ}docs{$ノ}index.html"),
+            'blade' => null,
+            'postman' => null,
+            'openapi' => null,
+            'assets' => [
+                'js' => realpath("public{$ノ}docs{$ノ}js"),
+                'css' => realpath("public{$ノ}docs{$ノ}css"),
+                'images' => realpath("public{$ノ}docs{$ノ}images"),
             ],
         ], $paths);
 
@@ -168,7 +196,7 @@ class BehavioursTest extends BaseLaravelTest
     {
         RouteFacade::get('/api/action1', TestGroupController::class . '@action1');
 
-        $this->setConfig(['static.output_path' => 'static/docs']);
+        $this->setConfig(['type' => 'static', 'static.output_path' => 'static/docs']);
         $this->assertFileDoesNotExist('static/docs/index.html');
 
         $this->generate();
