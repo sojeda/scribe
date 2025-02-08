@@ -66,7 +66,7 @@ return Config\Factory::make(
         title: config('app.name').' API Documentation',
         description: '',
         baseUrls: [
-            "production" => config("app.base_url"),
+            "production" => config("app.url"),
         ],
         exampleLanguages: ['bash', 'javascript'],
         logo: false,
