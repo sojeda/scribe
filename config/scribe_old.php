@@ -223,9 +223,11 @@ INTRO
             [
                 'override',
                 [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json',
-                ]
+                    'with' => [
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                    ]
+                ],
             ]
         ],
         'bodyParameters' => [
