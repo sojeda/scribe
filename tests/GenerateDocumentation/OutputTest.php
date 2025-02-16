@@ -22,7 +22,7 @@ use Knuckles\Scribe\Tools\Utils;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Yaml\Yaml;
 use Knuckles\Scribe\Extracting\Strategies;
-use function Knuckles\Scribe\Config\overrideResults;
+use function Knuckles\Scribe\Config\mergeResults;
 use function Knuckles\Scribe\Config\withConfiguredStrategy;
 
 class OutputTest extends BaseLaravelTest
@@ -140,7 +140,7 @@ class OutputTest extends BaseLaravelTest
             'postman.overrides' => [
                 'info.version' => '3.9.9',
             ],
-            'strategies.headers' => overrideResults(config('scribe.strategies.headers'), [
+            'strategies.headers' => mergeResults(config('scribe.strategies.headers'), [
                 'Custom-Header' => 'NotSoCustom',
             ]),
         ]);
@@ -201,7 +201,7 @@ class OutputTest extends BaseLaravelTest
             'openapi.overrides' => [
                 'info.version' => '3.9.9',
             ],
-            'strategies.headers' => overrideResults(Defaults::HEADERS_STRATEGIES, [
+            'strategies.headers' => mergeResults(Defaults::HEADERS_STRATEGIES, [
                 'Custom-Header' => 'NotSoCustom',
             ]),
         ]);
@@ -223,7 +223,7 @@ class OutputTest extends BaseLaravelTest
     {
         RouteFacade::get('/api/headers', [TestController::class, 'checkCustomHeaders']);
         $this->setConfig([
-            'strategies.headers' => overrideResults(Defaults::HEADERS_STRATEGIES, [
+            'strategies.headers' => mergeResults(Defaults::HEADERS_STRATEGIES, [
                     'Authorization' => 'customAuthToken',
                     'Custom-Header' => 'NotSoCustom',
                 ]
