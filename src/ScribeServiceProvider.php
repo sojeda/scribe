@@ -32,7 +32,7 @@ class ScribeServiceProvider extends ServiceProvider
         $this->app->bind(RouteMatcherInterface::class, config('scribe.routeMatcher', RouteMatcher::class));
 
         if (!class_exists('Str')) {
-            // Lumen may not have the aliases set up, and we don't want to have to use the FQN in our blade files.
+            // We don't want to have to use the FQN in our blade files.
             class_alias(\Illuminate\Support\Str::class, 'Str');
         }
     }
