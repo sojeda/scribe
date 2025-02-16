@@ -41,9 +41,9 @@ abstract class Strategy
      *   Specify route names ("users.index", "users.*"), or method and path ("GET *", "POST /safe/*").
      * @return array{string,array} Tuple of strategy class FQN and specified settings.
      */
-    public static function wrapWithSettings(
+    protected static function wrapWithSettings(
         string $strategyName = self::class,
-        array $only = ['*'],
+        array $only = [],
         array $except = [],
         array $otherSettings = []
     ): array

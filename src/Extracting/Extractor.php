@@ -14,7 +14,8 @@ use Illuminate\Support\Str;
 use Knuckles\Camel\Extraction\ResponseCollection;
 use Knuckles\Camel\Extraction\ResponseField;
 use Knuckles\Camel\Output\OutputEndpointData;
-use Knuckles\Scribe\Extracting\Strategies\Override;
+use Knuckles\Scribe\Extracting\Strategies\StaticData;
+use Knuckles\Scribe\Tools\ConsoleOutputUtils as c;
 use Knuckles\Scribe\Tools\DocumentationConfig;
 use Knuckles\Scribe\Tools\RoutePatternMatcher;
 
@@ -210,13 +211,17 @@ class Extractor
             if (is_array($strategyClassOrTuple)) {
                 [$strategyClass, &$settings] = $strategyClassOrTuple;
                 if ($strategyClass == 'override') {
-                    $strategyClass = Override::class;
-                    // Overrides can be short: ['override', ['key' => 'value']],
-                    // or extended ['override', ['with' => ['key' => 'value'], 'only' => ['GET *'], 'except' => []]],
-                    $settingsFormat = array_key_exists('with', $settings) ? 'extended' : 'short';
+                    c::warn("The 'override' strategy was renamed to 'static_data', and will stop working in the future. Please replace 'override' in your config file with 'static_data'.");
+                    $strategyClass = 'static_data';
+                }
+                if ($strategyClass == 'static_data') {
+                    $strategyClass = StaticData::class;
+                    // Static data can be short: ['static_data', ['key' => 'value']],
+                    // or extended ['static_data', ['data' => ['key' => 'value'], 'only' => ['GET *'], 'except' => []]],
+                    $settingsFormat = array_key_exists('data', $settings) ? 'extended' : 'short';
                     $settings = match($settingsFormat) {
                         'extended' => $settings,
-                        'short' => ['with' => $settings],
+                        'short' => ['data' => $settings],
                     };
                 }
             } else {

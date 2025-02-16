@@ -2,7 +2,7 @@
 
 use Knuckles\Scribe\Extracting\Strategies;
 use Knuckles\Scribe\Config;
-use function Knuckles\Scribe\Config\{mergeResults, removeStrategies, withConfiguredStrategy};
+use function Knuckles\Scribe\Config\{removeStrategies, withConfiguredStrategy};
 
 return [
     // The HTML <title> for the generated documentation. If this is empty, Scribe will infer it from config('app.name').
@@ -203,7 +203,7 @@ INTRO
 
     // The strategies Scribe will use to extract information about your routes at each stage.
     // Use removeStrategies() to remove an included strategy.
-    // Use mergeResults() to override the data returned from a strategy. Use withConfiguredStrategy() to configure a strategy which supports it.
+    // Use withConfiguredStrategy() to configure a strategy which supports it.
     'strategies' => [
         'metadata' => [
             ...Config\Defaults::METADATA_STRATEGIES,
@@ -214,10 +214,13 @@ INTRO
         'queryParameters' => [
             ...Config\Defaults::QUERY_PARAMETERS_STRATEGIES,
         ],
-        'headers' => mergeResults(Config\Defaults::HEADERS_STRATEGIES, with: [
-            'Content-Type' => 'application/json',
-            'Accept' => 'application/json',
-        ]),
+        'headers' => [
+            ...Config\Defaults::HEADERS_STRATEGIES,
+            Strategies\StaticData::withSettings(data: [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ]),
+        ],
         'bodyParameters' => [
             ...Config\Defaults::BODY_PARAMETERS_STRATEGIES,
         ],

@@ -207,7 +207,7 @@ class ExtractorTest extends BaseLaravelTest
         $this->config['strategies']['headers'] = [
             Strategies\Headers\GetFromHeaderAttribute::class,
             [
-                'override', $headers
+                'static_data', $headers
             ],
         ];
         $parsed = $this->process($route);
@@ -228,14 +228,41 @@ class ExtractorTest extends BaseLaravelTest
         ];
         $this->config['strategies']['headers'] = [
             Strategies\Headers\GetFromHeaderAttribute::class,
-            ['override', ['with' => $headers, 'only' => ['GET *']]],
+            ['static_data', ['data' => $headers, 'only' => ['GET *']]],
         ];
         $parsed = $this->process($route);
         $this->assertArraySubset($parsed->headers, $headers);
 
         $this->config['strategies']['headers'] = [
             Strategies\Headers\GetFromHeaderAttribute::class,
-            ['override', ['with' => $headers, 'only' => [], 'except' => ['GET *']]],
+            ['static_data', ['data' => $headers, 'only' => [], 'except' => ['GET *']]],
+        ];
+        $parsed = $this->process($route);
+        $this->assertEmpty($parsed->headers);
+    }
+
+    /** @test */
+    public function overrides_headers_based_on_full_strategy_config()
+    {
+        $route = $this->createRoute('GET', '/get', 'dummy');
+        $this->config['strategies']['headers'] = [Strategies\Headers\GetFromHeaderAttribute::class];
+        $parsed = $this->process($route);
+        $this->assertEmpty($parsed->headers);
+
+        $headers = [
+            'accept' => 'application/json',
+            'Content-Type' => 'application/json+vnd',
+        ];
+        $this->config['strategies']['headers'] = [
+            Strategies\Headers\GetFromHeaderAttribute::class,
+            Strategies\StaticData::withSettings(only: ['GET *'], data: $headers),
+        ];
+        $parsed = $this->process($route);
+        $this->assertArraySubset($parsed->headers, $headers);
+
+        $this->config['strategies']['headers'] = [
+            Strategies\Headers\GetFromHeaderAttribute::class,
+            Strategies\StaticData::withSettings(except: ['GET *'], data: $headers),
         ];
         $parsed = $this->process($route);
         $this->assertEmpty($parsed->headers);

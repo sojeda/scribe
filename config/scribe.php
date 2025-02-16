@@ -3,7 +3,7 @@
 use Knuckles\Scribe\Config;
 use Knuckles\Scribe\Config\{AuthIn,ExternalTheme};
 use Knuckles\Scribe\Extracting\Strategies;
-use function Knuckles\Scribe\Config\{mergeResults, removeStrategies, withConfiguredStrategy};
+use function Knuckles\Scribe\Config\{removeStrategies, withConfiguredStrategy};
 
 /**
  * For documentation, use your IDE's autocomplete features, or see https://scribe.knuckles.wtf/laravel/reference/config
@@ -33,14 +33,17 @@ return Config\Factory::make(
         ),
         strategies: Config\Extracting::strategies(
         // Use removeStrategies() to remove an included strategy.
-        // Use mergeResults() to override the data returned from a strategy. Use withConfiguredStrategy() to configure a strategy which supports it.
+        // Use withConfiguredStrategy() to configure a strategy which supports it.
             metadata: [...Config\Defaults::METADATA_STRATEGIES],
             urlParameters: [...Config\Defaults::URL_PARAMETERS_STRATEGIES],
             queryParameters: [...Config\Defaults::QUERY_PARAMETERS_STRATEGIES],
-            headers: mergeResults(Config\Defaults::HEADERS_STRATEGIES, with: [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json',
-            ]),
+            headers: [
+                ...Config\Defaults::HEADERS_STRATEGIES,
+                Strategies\StaticData::withSettings(data: [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                ]),
+            ],
             bodyParameters: [...Config\Defaults::BODY_PARAMETERS_STRATEGIES],
             responses: withConfiguredStrategy(
                 Config\Defaults::RESPONSES_STRATEGIES,

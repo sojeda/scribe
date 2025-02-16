@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route as RouteFacade;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\Str;
-use Knuckles\Scribe\Config\Defaults;
 use Knuckles\Scribe\Tests\BaseLaravelTest;
 use Knuckles\Scribe\Tests\Fixtures\TestController;
 use Knuckles\Scribe\Tests\Fixtures\TestGroupController;
@@ -22,7 +21,6 @@ use Knuckles\Scribe\Tools\Utils;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\Yaml\Yaml;
 use Knuckles\Scribe\Extracting\Strategies;
-use function Knuckles\Scribe\Config\mergeResults;
 use function Knuckles\Scribe\Config\withConfiguredStrategy;
 
 class OutputTest extends BaseLaravelTest
@@ -140,9 +138,10 @@ class OutputTest extends BaseLaravelTest
             'postman.overrides' => [
                 'info.version' => '3.9.9',
             ],
-            'strategies.headers' => mergeResults(config('scribe.strategies.headers'), [
-                'Custom-Header' => 'NotSoCustom',
-            ]),
+            'strategies.headers' => [
+                ...config('scribe.strategies.headers'),
+                Strategies\StaticData::withSettings(data: ['Custom-Header' => 'NotSoCustom']),
+            ],
         ]);
         $this->enableResponseCalls();
 
@@ -201,9 +200,10 @@ class OutputTest extends BaseLaravelTest
             'openapi.overrides' => [
                 'info.version' => '3.9.9',
             ],
-            'strategies.headers' => mergeResults(Defaults::HEADERS_STRATEGIES, [
-                'Custom-Header' => 'NotSoCustom',
-            ]),
+            'strategies.headers' =>  [
+                ...config('scribe.strategies.headers'),
+                Strategies\StaticData::withSettings(data: ['Custom-Header' => 'NotSoCustom']),
+            ],
         ]);
         $this->enableResponseCalls();
 
@@ -216,24 +216,6 @@ class OutputTest extends BaseLaravelTest
         $generatedSpec = Yaml::parseFile($this->openapiOutputPath());
         $fixtureSpec = Yaml::parseFile(__DIR__ . '/../Fixtures/openapi.yaml');
         $this->assertEquals($fixtureSpec, $generatedSpec);
-    }
-
-    /** @test */
-    public function can_append_custom_http_headers()
-    {
-        RouteFacade::get('/api/headers', [TestController::class, 'checkCustomHeaders']);
-        $this->setConfig([
-            'strategies.headers' => mergeResults(Defaults::HEADERS_STRATEGIES, [
-                    'Authorization' => 'customAuthToken',
-                    'Custom-Header' => 'NotSoCustom',
-                ]
-            ),
-        ]);
-        $this->generate();
-
-        $endpointDetails = Yaml::parseFile('.scribe/endpoints/00.yaml')['endpoints'][0];
-        $this->assertEquals("customAuthToken", $endpointDetails['headers']["Authorization"]);
-        $this->assertEquals("NotSoCustom", $endpointDetails['headers']["Custom-Header"]);
     }
 
     /** @test */

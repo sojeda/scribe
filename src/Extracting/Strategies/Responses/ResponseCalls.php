@@ -301,7 +301,7 @@ class ResponseCalls extends Strategy
      * @return array
      */
     public static function withSettings(
-        array $only = ['GET *'],
+        array $only = [],
         array $except = [],
         array $config = [],
         array $queryParams = [],
