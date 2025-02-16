@@ -1,6 +1,8 @@
 <?php
 
 use Knuckles\Scribe\Extracting\Strategies;
+use Knuckles\Scribe\Config;
+use function Knuckles\Scribe\Config\{mergeResults, removeStrategies, withConfiguredStrategy};
 
 return [
     // The HTML <title> for the generated documentation. If this is empty, Scribe will infer it from config('app.name').
@@ -200,41 +202,24 @@ INTRO
     ],
 
     // The strategies Scribe will use to extract information about your routes at each stage.
-    // If you create or install a custom strategy, add it here.
+    // Use removeStrategies() to remove an included strategy.
+    // Use mergeResults() to override the data returned from a strategy. Use withConfiguredStrategy() to configure a strategy which supports it.
     'strategies' => [
         'metadata' => [
-            Strategies\Metadata\GetFromDocBlocks::class,
-            Strategies\Metadata\GetFromMetadataAttributes::class,
+            ...Config\Defaults::METADATA_STRATEGIES,
         ],
         'urlParameters' => [
-            Strategies\UrlParameters\GetFromLaravelAPI::class,
-            Strategies\UrlParameters\GetFromUrlParamAttribute::class,
-            Strategies\UrlParameters\GetFromUrlParamTag::class,
+            ...Config\Defaults::URL_PARAMETERS_STRATEGIES,
         ],
         'queryParameters' => [
-            Strategies\QueryParameters\GetFromFormRequest::class,
-            Strategies\QueryParameters\GetFromInlineValidator::class,
-            Strategies\QueryParameters\GetFromQueryParamAttribute::class,
-            Strategies\QueryParameters\GetFromQueryParamTag::class,
+            ...Config\Defaults::QUERY_PARAMETERS_STRATEGIES,
         ],
-        'headers' => [
-            Strategies\Headers\GetFromHeaderAttribute::class,
-            Strategies\Headers\GetFromHeaderTag::class,
-            [
-                'override',
-                [
-                    'with' => [
-                        'Content-Type' => 'application/json',
-                        'Accept' => 'application/json',
-                    ]
-                ],
-            ]
-        ],
+        'headers' => mergeResults(Config\Defaults::HEADERS_STRATEGIES, with: [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ]),
         'bodyParameters' => [
-            Strategies\BodyParameters\GetFromFormRequest::class,
-            Strategies\BodyParameters\GetFromInlineValidator::class,
-            Strategies\BodyParameters\GetFromBodyParamAttribute::class,
-            Strategies\BodyParameters\GetFromBodyParamTag::class,
+            ...Config\Defaults::BODY_PARAMETERS_STRATEGIES,
         ],
         'responses' => [
             Strategies\Responses\UseResponseAttributes::class,
@@ -242,21 +227,17 @@ INTRO
             Strategies\Responses\UseApiResourceTags::class,
             Strategies\Responses\UseResponseTag::class,
             Strategies\Responses\UseResponseFileTag::class,
-            [
-                Strategies\Responses\ResponseCalls::class,
-                [
-                    'only' => ['GET *'],
-                    // Disable debug mode when generating response calls to avoid error stack traces in responses
-                    'config' => [
-                        'app.debug' => false,
-                    ],
+            Strategies\Responses\ResponseCalls::withSettings(
+                only: ['GET *'],
+                // Disable debug mode when generating response calls to avoid error stack traces in responses
+                config: [
+                    'app.debug' => false,
                 ]
-            ]
+            )
         ],
         'responseFields' => [
-            Strategies\ResponseFields\GetFromResponseFieldAttribute::class,
-            Strategies\ResponseFields\GetFromResponseFieldTag::class,
-        ],
+            ...Config\Defaults::RESPONSE_FIELDS_STRATEGIES,
+        ]
     ],
 
     // For response calls, API resource responses and transformer responses,
