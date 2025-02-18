@@ -8,13 +8,13 @@ use function Knuckles\Scribe\Config\{removeStrategies, configureStrategy};
 // Only the most common configs are shown. See the https://scribe.knuckles.wtf/laravel/reference/config for all.
 
 return [
-    // The HTML <title> for the generated documentation. If this is empty, Scribe will infer it from config('app.name').
+    // The HTML <title> for the generated documentation.
     'title' => config('app.name').' API Documentation',
 
     // A short description of your API. Will be included in the docs webpage, Postman collection and OpenAPI spec.
     'description' => '',
 
-    // The base URL displayed in the docs. If this is empty, Scribe will use the value of config('app.url') at generation time.
+    // The base URL displayed in the docs.
     // If you're using `laravel` type, you can set this to a dynamic string, like '{{ config("app.tenant_url") }}' to get a dynamic base URL.
     'base_url' => config("app.url"),
 
@@ -57,7 +57,7 @@ return [
     ],
 
     'laravel' => [
-        // Whether to automatically create a docs endpoint for you to view your generated docs. You can still set up routing manually.
+        // Whether to automatically create a docs route for you to view your generated docs. You can still set up routing manually.
         'add_routes' => true,
 
         // URL path to use for the docs endpoint (if `add_routes` is true).
@@ -82,8 +82,7 @@ return [
         // Don't forget to enable CORS headers for your endpoints.
         'enabled' => true,
 
-        // The base URL for the API tester to use (for example, you can set this to your staging URL).
-        // Leave as null to be the same as the displayed URL (config("scribe.base_url")).
+        // The base URL to use in the API tester. Leave as null to be the same as the displayed URL (`scribe.base_url`).
         'base_url' => null,
 
         // [Laravel Sanctum] Fetch a CSRF token before each request, and add it as an X-XSRF-TOKEN header.
@@ -131,7 +130,7 @@ return [
     // Example requests for each endpoint will be shown in each of these languages.
     // Supported options are: bash, javascript, php, python
     // To add a language of your own, see https://scribe.knuckles.wtf/laravel/advanced/example-requests
-    // Note: does not work for external docs types
+    // Note: does not work for `external` docs types
     'example_languages' => [
         'bash',
         'javascript',
@@ -172,7 +171,7 @@ return [
         // By default, Scribe will sort groups alphabetically, and endpoints in the order their routes are defined.
         // You can override this by listing the groups, subgroups and endpoints here in the order you want them.
         // See https://scribe.knuckles.wtf/blog/laravel-v4#easier-sorting and https://scribe.knuckles.wtf/laravel/reference/config#order for details
-        // Note: does not work for external docs types
+        // Note: does not work for `external` docs types
         'order' => [],
     ],
 
@@ -190,7 +189,7 @@ return [
     // Available tokens are `{date:<format>}` and `{git:<format>}`.
     // The format you pass to `date` will be passed to PHP's `date()` function.
     // The format you pass to `git` can be either "short" or "long".
-    // Note: does not work for external docs types
+    // Note: does not work for `external` docs types
     'last_updated' => 'Last updated: {date:F j, Y}',
 
     'examples' => [
@@ -230,7 +229,7 @@ return [
             Config\Defaults::RESPONSES_STRATEGIES,
             Strategies\Responses\ResponseCalls::withSettings(
                 only: ['GET *'],
-                // Disable debug mode when generating response calls to avoid error stack traces in responses
+                // Recommended: disable debug mode in response calls to avoid error stack traces in responses
                 config: [
                     'app.debug' => false,
                 ]
