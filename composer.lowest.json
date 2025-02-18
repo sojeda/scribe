@@ -31,7 +31,7 @@
         "shalvah/upgrader": ">=0.6.0",
         "spatie/data-transfer-object": "^2.6|^3.0",
         "symfony/var-exporter": "^6.0",
-        "symfony/yaml": "^^6.0"
+        "symfony/yaml": "^6.0"
     },
     "require-dev": {
         "dms/phpunit-arraysubset-asserts": "^0.5.0",
@@ -48,7 +48,10 @@
         "psr-4": {
             "Knuckles\\Scribe\\": "src/",
             "Knuckles\\Camel\\": "camel/"
-        }
+        },
+        "files": [
+            "src/Config/helpers.php"
+        ]
     },
     "autoload-dev": {
         "psr-4": {
@@ -73,6 +76,9 @@
         "process-timeout": 600,
         "allow-plugins": {
             "pestphp/pest-plugin": true
+        },
+        "platform": {
+          "php": "8.1"
         }
     },
     "replace": {
