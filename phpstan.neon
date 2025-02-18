@@ -9,6 +9,8 @@ parameters:
         - identifier: missingType.generics
         - identifier: missingType.property
           path: src\Tools\Globals.php
+        - identifier: return.type
+          path: camel\BaseDTOCollection.php
         - identifier: argument.templateType
         - '#Call to an undefined method ReflectionType::getName\(\).#'
         - '#Call to an undefined method Illuminate\\Contracts\\Filesystem\\Filesystem::path\(\)#'
