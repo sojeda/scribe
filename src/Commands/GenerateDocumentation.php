@@ -68,8 +68,7 @@ class GenerateDocumentation extends Command
         $writer = app(Writer::class, ['config' => $this->docConfig, 'paths' => $this->paths]);
         $writer->writeDocs($groupedEndpoints);
 
-        // Retiring the upgrade check for now. It sort of works, but is less helpful with the new config objects.
-        // It's also less useful, since the config file is no longer changing as frequently.
+        // Retiring the automatic upgrade check, since the config file is no longer changing as frequently.
         // $this->upgradeConfigFileIfNeeded();
 
         $this->sayGoodbye(errored: $groupedEndpointsInstance->hasEncounteredErrors());
