@@ -1,7 +1,7 @@
 <?php
 
 use Knuckles\Scribe\Extracting\Strategies;
-use Knuckles\Scribe\Config;
+use Knuckles\Scribe\Config\Defaults;
 use Knuckles\Scribe\Config\AuthIn;
 use function Knuckles\Scribe\Config\{removeStrategies, configureStrategy};
 
@@ -207,26 +207,26 @@ return [
     // Use removeStrategies() to remove an included strategy.
     'strategies' => [
         'metadata' => [
-            ...Config\Defaults::METADATA_STRATEGIES,
-        ],
-        'urlParameters' => [
-            ...Config\Defaults::URL_PARAMETERS_STRATEGIES,
-        ],
-        'queryParameters' => [
-            ...Config\Defaults::QUERY_PARAMETERS_STRATEGIES,
+            ...Defaults::METADATA_STRATEGIES,
         ],
         'headers' => [
-            ...Config\Defaults::HEADERS_STRATEGIES,
+            ...Defaults::HEADERS_STRATEGIES,
             Strategies\StaticData::withSettings(data: [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
             ]),
         ],
+        'urlParameters' => [
+            ...Defaults::URL_PARAMETERS_STRATEGIES,
+        ],
+        'queryParameters' => [
+            ...Defaults::QUERY_PARAMETERS_STRATEGIES,
+        ],
         'bodyParameters' => [
-            ...Config\Defaults::BODY_PARAMETERS_STRATEGIES,
+            ...Defaults::BODY_PARAMETERS_STRATEGIES,
         ],
         'responses' => configureStrategy(
-            Config\Defaults::RESPONSES_STRATEGIES,
+            Defaults::RESPONSES_STRATEGIES,
             Strategies\Responses\ResponseCalls::withSettings(
                 only: ['GET *'],
                 // Recommended: disable debug mode in response calls to avoid error stack traces in responses
@@ -236,7 +236,7 @@ return [
             )
         ),
         'responseFields' => [
-            ...Config\Defaults::RESPONSE_FIELDS_STRATEGIES,
+            ...Defaults::RESPONSE_FIELDS_STRATEGIES,
         ]
     ],
 
