@@ -254,6 +254,17 @@ class TestController extends Controller
         ];
     }
 
+    public function withStreamedResponse()
+    {
+        function yieldItems() {
+            yield 'one';
+            yield 'two';
+        }
+        return response()->streamJson([
+            'items' => yieldItems(),
+        ]);
+    }
+
     public function echoesConfig()
     {
         return [
