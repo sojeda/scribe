@@ -121,7 +121,6 @@ class GenerateDocumentation extends Command
         // Force root URL so it works in Postman collection
         $baseUrl = $this->docConfig->get('base_url') ?? config('app.url');
 
-        /* @phpstan-ignore-next-line */
         try {
             // Renamed from forceRootUrl in Laravel 11.43 or so
             URL::useOrigin($baseUrl);
