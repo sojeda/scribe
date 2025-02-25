@@ -177,6 +177,7 @@ class ResponseCallsTest extends BaseLaravelTest
     {
         $route = LaravelRouteFacade::post('/withStreamedResponse', [TestController::class, 'withStreamedResponse']);
 
+        $this->withoutExceptionHandling();
         $responses = $this->invokeStrategy($route);
 
         $this->assertEquals(200, $responses[0]['status']);
