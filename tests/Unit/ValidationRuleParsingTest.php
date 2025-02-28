@@ -553,9 +553,7 @@ class ValidationRuleParsingTest extends BaseLaravelTest
         $results = $this->strategy->parse([
             'enum' => [
                 'required',
-                new \Illuminate\Validation\Rules\Enum(Fixtures\TestStringBackedEnum::class),
-                // Not supported in Laravel 8
-                // Rule::enum(Fixtures\TestStringBackedEnum::class)
+                Rule::enum(Fixtures\TestStringBackedEnum::class)
             ],
         ]);
         $this->assertEquals('string', $results['enum']['type']);
@@ -741,7 +739,7 @@ if ($invokableRulesSupported) {
 }
 
 if ($laravel10Rules) {
-// Laravel 10 deprecated the previous Rule and InvokableRule classes for a single interface
+    // Laravel 10 deprecated the previous Rule and InvokableRule classes for a single interface
     // (https://github.com/laravel/framework/pull/45954)
     class DummyL10ValidationRule implements \Illuminate\Contracts\Validation\ValidationRule
     {
