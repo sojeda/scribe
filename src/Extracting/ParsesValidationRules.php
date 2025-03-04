@@ -125,6 +125,7 @@ trait ParsesValidationRules
                     $parameterData['description'] .= '.';
                 }
 
+                $parameterData['description'] = trim($parameterData['description']);
                 $parameters[$parameter] = $parameterData;
             } catch (Throwable $e) {
                 if ($e instanceof ScribeException) {
